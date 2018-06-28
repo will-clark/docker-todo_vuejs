@@ -4,5 +4,5 @@ URL: https://todo.willclark.org/
 
 # Credits
 
-Vue.js: https://vuejs.org/
-REM REST API: http://rem-rest-api.herokuapp.com/#why-rem
+- Vue.js: https://vuejs.org/
+- REM REST API: http://rem-rest-api.herokuapp.com/#why-rem
