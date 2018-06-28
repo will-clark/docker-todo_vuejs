@@ -1,0 +1,25 @@
+<html>
+    <head>
+    	<title>Simple Todo Vue.js Application</title>
+        <link rel="stylesheet" href="/css/main.css">
+        <script src="/js/vue.js"></script>
+    </head>
+    <body>
+
+        <div id="app">
+
+            <ol>
+                <todo-item v-for="item in todos" :todo="item" :key="item.id" @update="updateTodo"></todo-item>
+            </ol>
+
+			<todo-create @add="addTodo"></todo-create>
+
+        </div>
+
+        <script src="/js/editable.js"></script>
+        <script src="/js/todo-edit.js"></script>
+        <script src="/js/todo-item.js"></script>
+        <script src="/js/todo-create.js"></script>
+        <script src="/js/app.js"></script>
+    </body>
+</html>

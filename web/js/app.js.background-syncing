@@ -1,0 +1,108 @@
+var app = new Vue({
+  el: '#app',
+  data: {
+    sequence: 0,
+    todos: [],
+    dirty: false,
+    lastSync: 0,
+    timer: null
+  },
+  methods: {
+    incrSeq: function() {
+      this.sequence = this.sequence + 1;
+      return this.sequence;
+    },
+    addTodo: function(str) {
+      this.todos.push({id: this.incrSeq(), text: str, __new: true});
+      this.dirty = true;
+    },
+    editTodo: function(editTodo) {
+      var i = this.todos.findIndex(t => t.id == editTodo.id);
+      var oldTodo = this.todos[i];
+      if (oldTodo.text != editTodo.text) {
+        this.todos[i] = editTodo;
+        this.dirty = true;
+      }
+    },
+    syncInterval: function() {
+      return (5 * 1000);
+    },
+    maybeSync: function() {
+      if (this.dirty) {
+        this.doSync();
+      }
+    },
+    doSync: function() {
+      if (this.todos == null || this.todos.length == 0) return true;
+
+      console.log('update the server!');
+
+      var i;
+      for (i = 0; i < this.todos.length; i++) {
+        var todo = this.todos[i];
+        if (todo.hasOwnProperty('__new')) {
+          delete todo.__new;
+          this.doCreate(todo);
+        }
+        else {
+          this.doUpdate(todo);
+        }
+      }
+
+      this.dirty = false;
+      this.lastSync = Date.now();
+    },
+    doList: function() {
+
+      var sequence = this.sequence;
+      var todos = this.todos;
+
+      fetch('//rem-rest-api.herokuapp.com/api/todos', {credentials: 'include'}).then(
+        function(response) {
+          if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' + response.status);
+            return;
+          }
+
+          response.json().then(function(server) {
+
+            console.log(server.data);
+
+            if (server.data != null && server.data.length > 0) {
+              var i;
+              for (i = 0; i < server.data.length; i++) {
+                var todo = server.data[i];
+                todos.push(todo);
+              }
+            }
+
+          });
+        }
+      )
+      .catch(function(err) {
+        console.log('Fetch Error :-S', err);
+      });
+    },
+    doCreate: function(newTodo) {
+        fetch('//rem-rest-api.herokuapp.com/api/todos', {credentials: 'include', method: 'post', body: JSON.stringify(newTodo)}).then(
+          function(response) {
+            console.log(response.json());
+          }
+        );
+    },
+    doUpdate: function(updateTodo) {
+        fetch('//rem-rest-api.herokuapp.com/api/todos/' + updateTodo.id, {credentials: 'include', method: 'put', body: JSON.stringify(updateTodo)}).then(
+          function(response) {
+            console.log(response.json());
+          }
+        );
+    }
+  },
+  created: function() {
+      this.timer = setInterval(this.maybeSync, this.syncInterval());
+      this.doList();
+  },
+  destroyed: function() {
+      clearInterval(this.timer);
+  }
+});
